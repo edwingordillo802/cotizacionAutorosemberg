@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js"; // Importar html2pdf.js
+import { superBase } from "./createClient";
 import {
   Container,
   TextField,
@@ -15,12 +16,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Grid from '@mui/material/Grid'; // Importa desde @mui/material
 
 function App() {
-  const [counter, setCounter] = useState(1);
-
   // Cargar el contador desde localStorage al montar el componente
   useEffect(() => {
-    const savedCounter = parseInt(localStorage.getItem("counter")) || 1;
-    setCounter(savedCounter);
+    fetchCotizacion()
   }, []);
 
   const [form, setForm] = useState({
@@ -77,6 +75,45 @@ function App() {
     return valor.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
   }
   
+  const [cotizacion, setCotizacion] = useState([]);
+
+  async function fetchCotizacion() {
+    const { data, error } = await superBase
+    .from('cotizaciones')
+    .select('id')
+    .single();
+
+    if (error) {
+      console.error('Error al obtener cotización:', error);
+      return;
+    }
+
+    if (data) {
+      setCotizacion(data.id); // Guardar el ID de la primera cotización
+    }
+  }
+
+  async function updateCotizacion() {
+    if (cotizacion === null) {
+      console.error('No se ha cargado ninguna cotización para actualizar.');
+      return;
+    }
+
+    const newId = cotizacion + 1; // Nuevo valor para el ID
+
+    // Realizar la actualización en Supabase
+    const { error } = await superBase
+    .from('cotizaciones') // Nombre de la tabla
+    .update({ id: newId }) // Campos a actualizar
+    .eq('id', cotizacion);
+
+    if (error) {
+      console.error('Error al actualizar el ID:', error);
+    } else {
+      console.log('ID actualizado correctamente.');
+      setCotizacion(newId);
+    }
+  }
 
   const handleGenerateInvoice = (e) => {
     e.preventDefault();
@@ -98,14 +135,6 @@ function App() {
       0
     );
 
-    // Incrementar y guardar el contador en localStorage
-    const incrementCounter = () => {
-      const newCounter = counter + 1;
-      setCounter(newCounter);
-      localStorage.setItem("counter", newCounter); // Guardar en localStorage
-      return newCounter; // Retornar el nuevo valor
-    };
-
     // Crear el objeto de factura
     const factura = {
       cliente: form.cliente,
@@ -114,7 +143,7 @@ function App() {
       descripciones: descriptions,
       valorTotal,
       fecha: new Date().toLocaleDateString("es-CO"),
-      cotizacion: `COT-${incrementCounter()}`
+      cotizacion: `COT-${cotizacion}`
     };
 
     // Calcular el total acumulado
@@ -334,6 +363,8 @@ function App() {
       .save(`Factura_${factura.cliente}.pdf`);
 
     alert("Factura generada exitosamente.");
+
+    updateCotizacion();
 
     // Limpiar el formulario y las descripciones
     setForm({
