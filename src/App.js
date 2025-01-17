@@ -115,7 +115,7 @@ function App() {
     }
   }
 
-  const handleGenerateInvoice = (e) => {
+  const handleGenerateInvoice = async (e) => {
     e.preventDefault();
 
     // Validar que hay descripciones y campos obligatorios llenos
@@ -364,7 +364,7 @@ function App() {
 
     alert("Factura generada exitosamente.");
 
-    updateCotizacion();
+    await updateCotizacion();
 
     // Limpiar el formulario y las descripciones
     setForm({
