@@ -5,12 +5,14 @@ import {
   TextField,
   Button,
   Typography,
-  Grid,
+  Box,
   List,
   ListItem,
   ListItemText,
-  Box,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Grid from '@mui/material/Grid'; // Importa desde @mui/material
 
 function App() {
   const [counter, setCounter] = useState(1);
@@ -22,13 +24,11 @@ function App() {
   }, []);
 
   const [form, setForm] = useState({
-    titulo: "",
     cliente: "",
     direccion: "",
     cc: "",
     descripcion: "",
     valorDescripcion: "",
-    correo: "",
   });
 
   const [descriptions, setDescriptions] = useState([]);
@@ -39,6 +39,11 @@ function App() {
       ...form,
       [name]: value,
     });
+  };
+
+  const handleDeleteDescription = (index) => {
+    const updatedDescriptions = descriptions.filter((_, i) => i !== index);
+    setDescriptions(updatedDescriptions);
   };
 
   const handleAddDescription = () => {
@@ -77,7 +82,7 @@ function App() {
     e.preventDefault();
 
     // Validar que hay descripciones y campos obligatorios llenos
-    if (!form.titulo || !form.cliente || !form.correo) {
+    if (!form.cliente) {
       alert("Por favor completa todos los campos obligatorios.");
       return;
     }
@@ -103,11 +108,9 @@ function App() {
 
     // Crear el objeto de factura
     const factura = {
-      titulo: form.titulo,
       cliente: form.cliente,
       direccion: form.direccion,
       cc: form.cc,
-      correo: form.correo,
       descripciones: descriptions,
       valorTotal,
       fecha: new Date().toLocaleDateString("es-CO"),
@@ -334,13 +337,11 @@ function App() {
 
     // Limpiar el formulario y las descripciones
     setForm({
-      titulo: "",
       cliente: "",
       direccion: "",
       cc: "",
       descripcion: "",
       valorDescripcion: "",
-      correo: "",
     });
     setDescriptions([]);
   };
@@ -352,17 +353,7 @@ function App() {
       </Typography>
       <Box component="form" onSubmit={handleGenerateInvoice}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Asunto del correo"
-              name="titulo"
-              value={form.titulo}
-              onChange={handleChange}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
               label="Cliente"
@@ -423,22 +414,22 @@ function App() {
         </Grid>
         <List>
           {descriptions.map((item, index) => (
-            <ListItem key={index}>
+            <ListItem key={index} secondaryAction={
+              <IconButton edge="end" onClick={() => handleDeleteDescription(index)}>
+                <DeleteIcon />
+              </IconButton>
+            }>
               <ListItemText
-                primary={`${item.descripcion} - ${item.valor ? `$${item.valor.toFixed(2)}` : "Sin valor"}`}
+                primary={item.descripcion}
+                secondary={
+                  item.valor !== null
+                    ? `Valor: ${formatoPesosColombianos(item.valor)}`
+                    : null
+                }
               />
             </ListItem>
           ))}
         </List>
-        <TextField
-          fullWidth
-          label="Correo a Enviar la Factura"
-          name="correo"
-          value={form.correo}
-          onChange={handleChange}
-          required
-          sx={{ mt: 2 }}
-        />
         <Button
           fullWidth
           variant="contained"
