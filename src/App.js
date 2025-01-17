@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js"; // Importar html2pdf.js
-import { superBase } from "./createClient";
+import { superBase } from "./CreateClient";
 import {
   Container,
   TextField,
@@ -360,7 +360,7 @@ function App() {
     element.innerHTML = invoiceContent;
     html2pdf()
       .from(element)
-      .save(`Factura_${factura.cliente}.pdf`);
+      .save(`Factura_${factura.cotizacion}.pdf`);
 
     alert("Factura generada exitosamente.");
 
